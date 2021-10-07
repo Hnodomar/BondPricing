@@ -33,21 +33,24 @@ double Bond::dirtyPrice() const {
 }
 
 double Bond::accruedAmount(Date settlement) const {
+    if (Utils::getCurrentDaysSinceEpoch() > settlement) 0.0;
     if (isExpired()) return 0.0;
-    const auto curr_cashflow = getCurrentCashFlow();
+    const auto curr_cashflow = getCashFlow(settlement);
     if (!curr_cashflow) return 0.0;
-    if (settlement == curr_cashflow->due_date
-     && settlement < Utils::getCurrentDaysSinceEpoch()) {
+    if (settlement == curr_cashflow->due_date) {
         return 0.0;
     }
-    const auto next_cashflow = getNextCashFlow(*curr_cashflow);
-    auto days_since_cashflow_start = settlement_date_ - curr_cashflow->due_date;
-    auto days_until_cashflow_payment = next_cashflow->due_date - settlement_date_;
-    return curr_cashflow->cashflow * (days_since_cashflow_start / days_until_cashflow_payment);
+    const auto prev_cashflow = getNextCashFlow(*curr_cashflow);
+    int32_t days_into_period = 0;
+    if (!prev_cashflow) 
+        days_into_period = issue_date_;
+    else 
+        days_into_period = settlement - prev_cashflow->due_date;
+    int32_t cflow_period = curr_cashflow->due_date - (prev_cashflow ? prev_cashflow->due_date : issue_date_);
+    return curr_cashflow->cashflow * (days_into_period / cflow_period);
 }
 
-CashFlowOpt Bond::getCurrentCashFlow() const {
-    const auto date = Utils::getCurrentDaysSinceEpoch();
+CashFlowOpt Bond::getCashFlow(Date date) const {
     for (auto i = 0; i < cashflows_.size(); ++i) {
         if (date <= cashflows_[i].due_date)
             return cashflows_[i];

@@ -27,7 +27,7 @@ public:
     double dirtyPrice() const;
     double accruedAmount(Date settlement) const; // UK Corporate Bond day-count convention: https://docs.londonstockexchange.com/sites/default/files/documents/accrued-interest-corp-supra.pdf
     double yield() const;
-    CashFlowOpt getCurrentCashFlow() const;
+    CashFlowOpt getCashFlow(Date date = Utils::getCurrentDaysSinceEpoch()) const;
     CashFlowOpt getNextCashFlow(const CashFlow& cashflow) const;
     CashFlowOpt getPreviousCashFlow(const CashFlow& cashflow) const;
     bool isExpired() const;
