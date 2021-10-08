@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <optional>
 
 #include "cashflow.hpp"
@@ -23,8 +24,21 @@ public:
         const CashFlows& cashflows,
         const Date settlement_date = Utils::getCurrentDaysSinceEpoch() + 2
     );
-    double cleanPrice() const;
-    double dirtyPrice() const;
+    double cleanPrice(
+        const double yield,
+        const Date date,
+        const double frequency
+    ) const;
+    double dirtyPrice(
+        const double yield, 
+        const Date date, 
+        const double frequency,
+        const Date settlement_date = Utils::getCurrentDaysSinceEpoch() + 2
+    ) const;
+    double yieldToMaturity(
+        const double bond_price,
+        const Date date = Utils::getCurrentDaysSinceEpoch()
+    ) const;
     double accruedAmount(Date settlement) const; // UK Corporate Bond day-count convention: https://docs.londonstockexchange.com/sites/default/files/documents/accrued-interest-corp-supra.pdf
     double yield() const;
     CashFlowOpt getCashFlow(Date date = Utils::getCurrentDaysSinceEpoch()) const;
@@ -32,6 +46,7 @@ public:
     CashFlowOpt getPreviousCashFlow(const CashFlow& cashflow) const;
     bool isExpired() const;
 private:    
+    double discreteBondPrice(const double rate, Date date) const;
     double face_value_;
     Date maturity_date_;
     Date issue_date_;
