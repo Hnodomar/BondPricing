@@ -7,7 +7,7 @@ A simple Corporate and Treasury bond pricing library. The library provides an in
 * Yield Curve Generation
 * Yield and Price interpolation
 * Dirty and Clean pricing
-* Yield to Maturity (YTM) calculations
+* Yield to Maturity (YTM) Safe-Newton approximations
 * Flat and General Term Structure
 
 ## Dependencies
