@@ -9,22 +9,25 @@
 
 namespace BondLibrary {
 class YieldCurve {
+    struct YieldCurvePoint {
+        YieldCurvePoint(int maturity, double yield)
+            : maturity(maturity), yield(yield) {}
+        int maturity;
+        double yield;
+    };
 public:
     template<typename ...Args> YieldCurve(Args ...args) {
-        assert((std::is_same<Args, double> 
-            && "Yield Curve must be constructed with yields"))...;
-        curve_bonds_.push_back(args)...;
+        assert((std::is_same<Args, YieldCurvePoint> 
+            && "Yield Curve must be constructed with yield curve points"))...;
+        yield_curve_.push_back(args)...;
     }
     template<typename ...Args> void addToYieldCurve(Args&& ...args) {
-        assert((std::is_same<Args, Bond> && "Can only add Bonds to Yield Curve"))...;
-        curve_bonds_.push_back(args)...;
+        assert((std::is_same<Args, YieldCurvePoint> && "Can only add points to Yield Curve"))...;
+        yield_curve_.push_back(args)...;
     }
     double estimateBondPrice(const Bond& bond) const;
-    double getForwardRateCurve() const;
-    double getSpotRateCurve() const;
 private:
-    std::vector<Bond> curve_bonds_;
-    std::vector<double> curve_bond_yields_;
+    std::vector<YieldCurvePoint> yield_curve_;
 };
 }
 #endif

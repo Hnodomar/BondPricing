@@ -23,8 +23,7 @@ bool Bond::isExpired() const {
     return false;
 }
 
-double Bond::cleanPrice(const double yield, const Date date, 
- const double frequency) const {
+double Bond::cleanPrice(const double yield, const Date date, const double frequency) const {
     if (isExpired()) return 0.0;
     return discreteBondPrice(yield / frequency, date);
 }
