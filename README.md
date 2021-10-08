@@ -10,6 +10,10 @@ A simple Corporate and Treasury bond pricing library. The library provides an in
 * Yield to Maturity (YTM) Safe-Newton approximations
 * Flat and General Term Structure
 
+## Usage
+
+TO-DO
+
 ## Dependencies
 
 * Python 3: https://www.python.org/
