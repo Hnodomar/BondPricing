@@ -7,14 +7,16 @@
 
 using namespace BondLibrary;
 
-TEST_CASE("Bond Prices") {
+TEST_CASE("Flat Term Structure Bonds") {
     SECTION("Basic Clean Price") {
         
     }
 }
 
-TEST_CASE("Yield Curves") {
-    SECTION("Bank of England Spot Yield Curve") {
+TEST_CASE("General Term Structure Bonds") {
 
-    }
+}
+
+TEST_CASE("Yield Curves") {
+ 
 }
