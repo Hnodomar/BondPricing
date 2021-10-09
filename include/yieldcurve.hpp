@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <cassert>
+#include <algorithm>
 #include <vector>
 
 #include "bond.hpp"
@@ -25,7 +26,11 @@ public:
         assert((std::is_same<Args, YieldCurvePoint> && "Can only add points to Yield Curve"))...;
         yield_curve_.push_back(args)...;
     }
+    void removeFromYieldCurve(const YieldCurvePoint& pt) {
+        yield_curve_.erase(std::remove(yield_curve_.begin(), yield_curve_.end(), pt), yield_curve_.end());
+    }
     double estimateBondPrice(const Bond& bond) const;
+    const std::vector<YieldCurvePoint>& getYieldCurve() const {return yield_curve_;}
 private:
     std::vector<YieldCurvePoint> yield_curve_;
 };
