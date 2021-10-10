@@ -19,10 +19,10 @@ BaseBond::BaseBond(double face_value, double coupon, const Date maturity_date,
     if (nflows >= 2 && cashflows_[nflows -1].cashflow == cashflows_[nflows - 2].cashflow) {
         cashflows_[nflows - 1].cashflow += face_value;
     }
-    assert(issue_date_ < cashflows_[0].due_date 
-        && "Issue date must be earlier than first payment date");
-    assert(maturity_date_ > issue_date_
-        && "Maturity date must be later than issue date");
+    if (issue_date_ >= cashflows_[0].due_date)
+        throw std::runtime_error("Issue date must be earlier than first payment date");
+    else if (maturity_date_ <= issue_date_)
+        throw std::runtime_error("Maturity date must be later than issue date");
 }
 
 double BaseBond::accruedAmount(Date settlement) const {
