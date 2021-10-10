@@ -14,6 +14,22 @@ A simple Corporate and Treasury bond pricing library. The library provides an in
 
 TO-DO
 
+## Building The Bond Pricing Library
+
+Note that this library uses Python3 in its linkage with Boost::Python, and a Boost Configuration of Python3 is required (by default, Boost builds with Python2).
+
+To build Boost with Python3 from source, first edit user-config.jam in tools/build/src to contain:
+
+```
+using python : 3.8 : /usr/bin/python3 : /usr/include/python3.8 : /usr/lib ;
+```
+Then build Boost:
+```
+./bootstrap.sh --prefix=INSTALL_DIR
+./b2 --with-python cxxflags="-std=c++11 -fPIC" variant=release stage
+./b2 --with-python link=static cxxflags="-std=c++11 -fPIC" variant=release install
+```
+
 ## Dependencies
 
 * Python 3: https://www.python.org/
