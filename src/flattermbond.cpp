@@ -12,7 +12,7 @@ double FlatTermBond::dirtyPrice(const double rate, const Date date) const {
     return notionalPresentValue(rate, date) + accruedAmount(date);
 }
 
-double FlatTermBond::dirtyPrice(const double market_price, const Date date) const {
+double FlatTermBond::dirtyPriceFromCleanPrice(const double market_price, const Date date) const {
     if (isExpired()) return 0.0;
     return market_price + accruedAmount(date);
 }
@@ -25,7 +25,7 @@ double FlatTermBond::duration(const double rate, const Date date) const {
         duration += (t * coupon_) / pow((1 + rate), t);
         ++t;
     }
-    duration / notionalPresentValue(rate, date);
+    return duration / notionalPresentValue(rate, date);
 }
 
 double FlatTermBond::notionalPresentValue(const double rate, Date date) const {

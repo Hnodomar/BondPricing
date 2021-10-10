@@ -14,7 +14,7 @@
 namespace BondLibrary {
 using Date = int32_t; // date is number of days since unix epoch.. user must translate day-count conventions themselves
 using CashFlows = std::vector<CashFlow>;
-using CashFlowOpt = std::optional<const CashFlow&>;
+using CashFlowOpt = std::optional<const CashFlow>;
 class BaseBond {
 public:
     BaseBond(
@@ -25,7 +25,7 @@ public:
         const CashFlows& cashflows,
         const Date settlement_date = Utils::getCurrentDaysSinceEpoch() + 2
     );
-    virtual ~BaseBond();
+    virtual ~BaseBond() {}
     double accruedAmount(Date settlement) const;
     double yieldToMaturity(const double bond_price) const {return yieldToMaturity(bond_price, issue_date_);}
     double yieldToMaturity(const double bond_price, const Date date) const;

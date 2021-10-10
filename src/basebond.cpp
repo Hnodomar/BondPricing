@@ -88,7 +88,7 @@ bool BaseBond::isExpired() const {
     return false;
 }
 
-CashFlowOpt BaseBond::getCashFlow(Date date = Utils::getCurrentDaysSinceEpoch()) const {
+CashFlowOpt BaseBond::getCashFlow(Date date) const {
     for (auto i = 0; i < cashflows_.size(); ++i) {
         if (date <= cashflows_[i].due_date)
             return cashflows_[i];
@@ -128,5 +128,5 @@ bool BaseBond::outOfRangeOrSlowConvergence(double rate_approx, double dfroot,
 }
 
 double BaseBond::modifiedDuration(const double rate, const Date date) const {
-    duration(rate, date) / (1 + date);
+    return duration(rate, date) / (1 + date);
 }
