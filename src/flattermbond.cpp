@@ -2,6 +2,11 @@
 
 using namespace BondLibrary;
 
+FlatTermBond::FlatTermBond(double face_value, double coupon, const Date maturity_date,
+ const Date issue_date, const CashFlowsPy& cashflows, Date settlement_date)
+    : BaseBond(face_value, coupon, maturity_date, issue_date, cashflows, settlement_date)
+{}
+
 double FlatTermBond::cleanPrice(const double rate, const Date date) const {
     if (isExpired()) return 0.0;
     return notionalPresentValue(rate, date);
@@ -29,12 +34,9 @@ double FlatTermBond::duration(const double rate, const Date date) const {
 }
 
 double FlatTermBond::notionalPresentValue(const double rate, Date date) const {
-    size_t i = 0;
-    for (; i < cashflows_.size(); ++i)
-        if (date <= cashflows_[i].due_date) break;
-    if (i == cashflows_.size()) return 0.0;
-    double unoccurred_payments = cashflows_.size() - 1 - i;
-    return (rate * face_value_) 
-        * ((1 - pow((1 + rate), -unoccurred_payments)) / rate)
-        + (face_value_ + (rate * face_value_)) * pow((1 + rate), -unoccurred_payments);
+    double npv = 0.0;
+    for (auto i = 0; i < cashflows_.size(); ++i) {
+        if (date > cashflows_[i].due_date) continue;
+        npv += cashflows_[i].cashflow / (pow(1 + rate, i));
+    }
 }

@@ -26,8 +26,21 @@ public:
     void addToYieldCurve(boost::python::list& curve_points) {
         addToCurve(curve_points);
     }
-    void removeFromYieldCurve(const YieldCurvePoint& pt) {
-        yield_curve_.erase(std::remove(yield_curve_.begin(), yield_curve_.end(), pt), yield_curve_.end());
+    void removeFromYieldCurve(const boost::python::object& pt) {
+        try {
+            auto pt_extract = boost::python::extract<YieldCurvePoint>(pt);
+            if (pt_extract.check()) {
+                yield_curve_.erase(
+                    std::remove(yield_curve_.begin(), yield_curve_.end(), pt), yield_curve_.end()
+                );
+            }
+            else {
+                throw std::runtime_error("Tried to remove a Yield Curve element that was not a YieldCurvePoint");
+            }
+        }
+        catch (boost::python::error_already_set) {
+            PyErr_Print();
+        }
     }
     const std::vector<YieldCurvePoint>& getYieldCurve() const {return yield_curve_;}
 private:

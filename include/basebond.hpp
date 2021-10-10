@@ -7,6 +7,7 @@
 #include <vector>
 #include <optional>
 #include <algorithm>
+#include <boost/python.hpp>
 
 #include "cashflow.hpp"
 #include "util.hpp"
@@ -14,6 +15,7 @@
 namespace BondLibrary {
 using Date = int32_t; // date is number of days since unix epoch.. user must translate day-count conventions themselves
 using CashFlows = std::vector<CashFlow>;
+using CashFlowsPy = boost::python::list;
 using CashFlowOpt = std::optional<const CashFlow>;
 class BaseBond {
 public:
@@ -22,7 +24,7 @@ public:
         double coupon,
         const Date maturity_date,
         const Date issue_date,
-        const CashFlows& cashflows,
+        const CashFlowsPy& cashflows,
         const Date settlement_date = Utils::getCurrentDaysSinceEpoch() + 2
     );
     virtual ~BaseBond() {}
@@ -37,8 +39,8 @@ public:
     CashFlowOpt getNextCashFlow(const CashFlow& cashflow) const;
     CashFlowOpt getPreviousCashFlow(const CashFlow& cashflow) const;
     virtual double duration(const double rate, const Date date) const = 0;
-protected:
     virtual double notionalPresentValue(const double rate, Date date) const = 0; 
+protected:
     bool outOfRangeOrSlowConvergence(
         double rate_approx,
         double dfroot, 

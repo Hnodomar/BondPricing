@@ -34,5 +34,5 @@ Then build Boost:
 
 * Python 3: https://www.python.org/
 * Boost: https://www.boost.org/
-* Catch2 (tests): https://github.com/catchorg/Catch2
+* Pytest (tests): https://docs.pytest.org/en/6.2.x/
 * Cmake (build system): https://cmake.org/

@@ -3,8 +3,8 @@
 using namespace BondLibrary;
 
 GeneralTermBond::GeneralTermBond(double face_value, double coupon, const Date maturity_date,
- const Date issue_date, const CashFlows& cashflows, const Date settlement_date, YieldCurve& yield_curve)
-  : BaseBond(face_value, coupon, maturity_date, issue_date, cashflows_, settlement_date)
+ const Date issue_date, const CashFlowsPy& cashflows, const Date settlement_date, YieldCurve& yield_curve)
+  : BaseBond(face_value, coupon, maturity_date, issue_date, cashflows, settlement_date)
   , yield_curve_(yield_curve)
 {}
 
@@ -26,7 +26,7 @@ double GeneralTermBond::dirtyPrice(const double market_price, const Date date) c
 double GeneralTermBond::notionalPresentValue(const double, Date date) const {
     double npv = 0.0;
     Date time = 0;
-    for (auto i = 0; i < cashflows_.size(); ++i) {
+    for (size_t i = 0; i < cashflows_.size(); ++i) {
         if (date > cashflows_[i].due_date) continue;
         time = cashflows_[i].due_date;
         npv += discountFactorFromYield(performLinearInterpolation(time), time) * cashflows_[i].cashflow;
@@ -38,7 +38,7 @@ double GeneralTermBond::duration(const double, Date date) const {
     double s = 0.0, d1 = 0.0;
     double dfactor = 0.0;
     Date time = 0;
-    for (auto i = 0; i < cashflows_.size(); ++i) {
+    for (size_t i = 0; i < cashflows_.size(); ++i) {
         if (date > cashflows_[i].due_date) continue;
         time = cashflows_[i].due_date;
         dfactor = discountFactorFromYield(performLinearInterpolation(time), time);

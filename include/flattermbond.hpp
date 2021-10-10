@@ -11,8 +11,8 @@ public:
         double coupon, 
         const Date maturity_date,
         const Date issue_date, 
-        const CashFlows& cashflows, 
-        const Date settlement_date
+        const CashFlowsPy& cashflows, 
+        Date settlement_date
     );
     double cleanPrice(const double rate, const Date date) const;
     double dirtyPrice(const double rate, const Date date) const;

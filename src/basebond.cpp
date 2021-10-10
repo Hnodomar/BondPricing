@@ -3,15 +3,23 @@
 using namespace BondLibrary;
 
 BaseBond::BaseBond(double face_value, double coupon, const Date maturity_date,
- const Date issue_date, const CashFlows& cashflows, const Date settlement_date)
+ const Date issue_date, const CashFlowsPy& cashflows, const Date settlement_date)
   : face_value_(face_value)
   , coupon_(coupon)
   , maturity_date_(maturity_date)
   , issue_date_(issue_date)
-  , settlement_date_(settlement_date)
-  , cashflows_(cashflows) {
+  , settlement_date_(settlement_date) {
+    Utils::convertPythonListToVector(
+        cashflows,
+        cashflows_,
+        "Tried to construct bond cashflows without CashFlow objects"
+    );
     std::sort(cashflows_.begin(), cashflows_.end());
-    assert(issue_date_ < cashflows[0].due_date 
+    const size_t nflows = cashflows_.size();
+    if (nflows >= 2 && cashflows_[nflows -1].cashflow == cashflows_[nflows - 2].cashflow) {
+        cashflows_[nflows - 1].cashflow += face_value;
+    }
+    assert(issue_date_ < cashflows_[0].due_date 
         && "Issue date must be earlier than first payment date");
     assert(maturity_date_ > issue_date_
         && "Maturity date must be later than issue date");
@@ -89,7 +97,7 @@ bool BaseBond::isExpired() const {
 }
 
 CashFlowOpt BaseBond::getCashFlow(Date date) const {
-    for (auto i = 0; i < cashflows_.size(); ++i) {
+    for (size_t i = 0; i < cashflows_.size(); ++i) {
         if (date <= cashflows_[i].due_date)
             return cashflows_[i];
     }
@@ -99,7 +107,7 @@ CashFlowOpt BaseBond::getCashFlow(Date date) const {
 CashFlowOpt BaseBond::getNextCashFlow(const CashFlow& cashflow) const {
     assert(cashflows_.size() > 1
         && "Number of cashflows must be larger than one to fetch next cashflow");
-    for (auto i = 0; i < cashflows_.size(); ++i) {
+    for (size_t i = 0; i < cashflows_.size(); ++i) {
         if (cashflows_[i].due_date == cashflow.due_date) {
             if (i == cashflows_.size() - 1) return std::nullopt;
             return cashflows_[i + 1];
@@ -111,7 +119,7 @@ CashFlowOpt BaseBond::getNextCashFlow(const CashFlow& cashflow) const {
 CashFlowOpt BaseBond::getPreviousCashFlow(const CashFlow& cashflow) const {
     assert(cashflows_.size() > 1
         && "Number of cashflows must be larger than one to fetch previous cashflow");
-    for (auto i = 0; i < cashflows_.size(); ++i) {
+    for (size_t i = 0; i < cashflows_.size(); ++i) {
         if (cashflows_[i].due_date == cashflow.due_date) {
             if (i == 0) return std::nullopt;
             return cashflows_[i - 1];

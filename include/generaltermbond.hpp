@@ -14,7 +14,7 @@ public:
         double coupon,
         const Date maturity_date,
         const Date issue_date,
-        const CashFlows& cashflows,
+        const CashFlowsPy& cashflows,
         const Date settlement_date,
         YieldCurve& yield_curve
     );

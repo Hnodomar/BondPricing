@@ -6,6 +6,9 @@
 namespace BondLibrary {
 using Date = int32_t;
 struct CashFlow {
+    CashFlow(double cashflow, Date due_date)
+        : cashflow(cashflow), due_date(due_date)
+    {}
     double cashflow = 0; // amount to be received
     Date due_date = 0; // date on which the cashflow is due to be paid out
     bool operator<(CashFlow rhs) {
