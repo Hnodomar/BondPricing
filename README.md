@@ -27,7 +27,7 @@ Then build Boost:
 ```
 ./bootstrap.sh --prefix=INSTALL_DIR
 ./b2 --with-python cxxflags="-std=c++11 -fPIC" variant=release stage
-./b2 --with-python link=static cxxflags="-std=c++11 -fPIC" variant=release install
+./b2 --with-python cxxflags="-std=c++11 -fPIC" variant=release install
 ```
 
 ## Dependencies
