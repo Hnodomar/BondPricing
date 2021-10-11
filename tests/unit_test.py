@@ -1,7 +1,8 @@
 import pytest
 import sys, os
+import math
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'build'))
-from BondPricing import YieldCurvePoint, YieldCurve, FlatTermBond, CashFlow, Date
+from BondPricing import YieldCurvePoint, YieldCurve, FlatTermBond, CashFlow, Date, DayCountConvention
 
 class TestBaseBond:
     def test_ExpiredBond(self):
@@ -40,12 +41,26 @@ class TestFlatTermStructure:
         ftbond = FlatTermBond(
             face_value = 100, 
             coupon = 10, 
-            maturity_date = Date('12/10/2024'), 
-            issue_date = Date('12/10/2021'),
+            maturity_date = Date('12/12/2024'), 
+            issue_date = Date('12/12/2021'),
             settlement_date = Date('14/10/2021'),
             cashflows = [CashFlow(cashflow=10, due_date=Date('12/10/{}'.format(2021 + x))) for x in range(1, 4)] 
         )
         assert ftbond.cleanPrice(0.09, Date('12/10/2021')) == 102.53
+    def test_DirtyPrice(self):
+        ftbond = FlatTermBond(
+            face_value = 1000,
+            coupon = 50,
+            cashflows = [
+                CashFlow(50, Date('01/{}/202{}'.format(12 if x % 2 == 0 else 6, int(2 + (x / 2))))) 
+                for x in range(6)
+            ],
+            maturity_date = Date('01/12/2023'),
+            issue_date = Date('01/01/2022'),
+            settlement_date = Date('01/01/2022'),
+            dc_convention = DayCountConvention.Year360Month30
+        )
+        assert ftbond.dirtyPrice(rate = 0.05, date = Date('29/09/2022')) == 1016.39
 
 class TestGeneralTermStucture:
     def test_CleanPrice(self):
