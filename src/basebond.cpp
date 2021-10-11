@@ -93,11 +93,21 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
     while (notionalPresentValue(up_bound, date) > bond_price)
         up_bound *= 2;
     double rate_approx = 0.5 * up_bound;
+    double fl = notionalPresentValue(up_bound, date);
+    if (fl < 0.0) {
+        xl = low_bound;
+        xh = up_bound;
+    }
+    else {
+        xl = up_bound;
+        xh = low_bound;
+    }
     dx_old = up_bound - low_bound;
     dx = dx_old; 
     froot = notionalPresentValue(rate_approx, date) - bond_price;
     dfroot = modifiedDuration(rate_approx, date);
     ++curr_iterations;
+    std::cout << low_bound << " " << up_bound << " " << froot << " " << dfroot << " " << dx << std::endl;
     while (curr_iterations <= max_iterations) {
         bool use_bisection = outOfRangeOrSlowConvergence(rate_approx, dfroot, froot, xh, xl, dx_old);
         if (use_bisection) {
@@ -111,7 +121,7 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
             rate_approx -= dx;
         }
         if (std::fabs(dx) < precision) {
-            return rate_approx;
+            return round(rate_approx * 100) / 100;
         }
         froot = notionalPresentValue(rate_approx, date) - bond_price;
         dfroot = modifiedDuration(rate_approx, date);
@@ -122,7 +132,6 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
             xh = rate_approx;
     }
     throw std::runtime_error("Maximum iterations exceeded on yield to maturity Safe-Newton approximation");
-
 }
 
 double BaseBond::getCouponRate() const {
@@ -179,5 +188,5 @@ bool BaseBond::outOfRangeOrSlowConvergence(double rate_approx, double dfroot,
 }
 
 double BaseBond::modifiedDuration(const double rate, const Utils::Date date) const {
-    //return duration(rate, date) / (1 + date);
+    return duration(rate, date) / (1.0 + rate);
 }

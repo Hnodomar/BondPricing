@@ -22,6 +22,8 @@ struct BaseBondWrapper : ::BondLibrary::BaseBond, wrapper<BondLibrary::BaseBond>
     }
 };
 
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(ytm_overloads, BondLibrary::BaseBond::yieldToMaturity, 1, 2);
+
 BOOST_PYTHON_MODULE(BondPricing) {
     class_<BondLibrary::YieldCurvePoint>("YieldCurvePoint", init<int, double>())
         .def_readwrite("maturity", &BondLibrary::YieldCurvePoint::maturity)
@@ -51,5 +53,6 @@ BOOST_PYTHON_MODULE(BondPricing) {
         .def("dirtyPrice", &BondLibrary::FlatTermBond::dirtyPrice, (arg("rate"), arg("date")))
         .def("dirtyPriceFromCleanPrice", &BondLibrary::FlatTermBond::dirtyPriceFromCleanPrice)
         .def("duration", &BondLibrary::FlatTermBond::duration)
-        .def("isExpired", &BondLibrary::BaseBond::isExpired);
+        .def("isExpired", &BondLibrary::BaseBond::isExpired)
+        .def("yieldToMaturity", &BondLibrary::BaseBond::yieldToMaturity);
 }

@@ -69,7 +69,10 @@ struct Date {
     bool operator==(const Date& rhs) const {
         return day == rhs.day && month == rhs.month && year == rhs.year;
     }
-    
+    friend std::ostream& operator<<(std::ostream& lhs, const Date& rhs) {
+        lhs << rhs.year << " " << rhs.month << " " << rhs.day << std::endl;
+        return lhs;
+    }
     int day;
     int month;
     int year;

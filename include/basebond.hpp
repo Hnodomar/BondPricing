@@ -29,7 +29,7 @@ public:
     );
     virtual ~BaseBond() {}
     double accruedAmount(Utils::Date settlement) const;
-    double yieldToMaturity(const double bond_price) const {return yieldToMaturity(bond_price, issue_date_);}
+   // double yieldToMaturity(const double bond_price) const {return yieldToMaturity(bond_price, issue_date_);}
     double yieldToMaturity(const double bond_price, const Utils::Date date) const;
     double getCouponRate() const;
     double getCurrentYield(double market_price) const;

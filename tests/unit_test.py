@@ -42,7 +42,7 @@ class TestFlatTermStructure:
             face_value = 100, 
             coupon = 10, 
             maturity_date = Date('12/12/2024'), 
-            issue_date = Date('12/12/2021'),
+            issue_date = Date('12/10/2021'),
             settlement_date = Date('14/10/2021'),
             cashflows = [CashFlow(cashflow=10, due_date=Date('12/10/{}'.format(2021 + x))) for x in range(1, 4)] 
         )
@@ -75,6 +75,32 @@ class TestFlatTermStructure:
             dc_convention = DayCountConvention.YearActualMonthActual
         )
         assert ftbond.dirtyPrice(rate = 0.05, date = Date('29/09/2022')) == 1016.39
+    def test_YieldToMaturity(self):
+        ftbond = FlatTermBond(
+            face_value = 100,
+            coupon = 10,
+            cashflows = [
+                CashFlow(10, Date('01/01/202{}'.format(x))) for x in range(3, 6)
+            ],
+            maturity_date = Date('12/12/2025'),
+            issue_date = Date('01/01/2021'),
+            settlement_date = Date('03/01/2021')
+        )
+        assert ftbond.yieldToMaturity(
+            ftbond.cleanPrice(0.09, Date('03/01/2021')), Date('03/01/2021')
+        ) == 0.09
+    def test_Duration(self):
+        ftbond = FlatTermBond(
+            face_value = 100,
+            coupon = 10,
+            cashflows = [
+                CashFlow(10, Date('01/01/202{}'.format(x))) for x in range(3, 6)
+            ],
+            maturity_date = Date('12/12/2025'),
+            issue_date = Date('01/01/2021'),
+            settlement_date = Date('03/01/2021')
+        )
+        assert ftbond.duration(0.09, Date('03/01/2021')) == 2.74
 
 class TestGeneralTermStucture:
     def test_CleanPrice(self):
