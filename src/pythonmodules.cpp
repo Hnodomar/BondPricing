@@ -5,16 +5,18 @@
 #include "generaltermbond.hpp"
 
 using namespace boost::python;
+using Date = BondLibrary::Utils::Date;
+using DC = BondLibrary::Utils::DayCountConvention;
 
 struct BaseBondWrapper : ::BondLibrary::BaseBond, wrapper<BondLibrary::BaseBond> {
-    BaseBondWrapper(const double f, const double c,const  BondLibrary::Date md, 
-     const BondLibrary::Date id, const BondLibrary::CashFlowsPy& cfs, const BondLibrary::Date sd)
+    BaseBondWrapper(const double f, const double c, const Date md, 
+     const Date id, const BondLibrary::CashFlowsPy& cfs, const Date sd)
         : ::BondLibrary::BaseBond(f, c, md, id, cfs, sd)
     {}
-    double duration(const double rate, const BondLibrary::Date date) const {
+    double duration(const double rate, const Date date) const {
         return this->get_override("duration")(rate, date);
     }
-    double notionalPresentValue(const double rate, BondLibrary::Date date) const {
+    double notionalPresentValue(const double rate, Date date) const {
         return this->get_override("notionalPresentValue")(rate, date);
     }
 };
@@ -27,12 +29,22 @@ BOOST_PYTHON_MODULE(BondPricing) {
     class_<BondLibrary::YieldCurve>("YieldCurve", init<list&>())
         .def("addToYieldCurve", &BondLibrary::YieldCurve::addToYieldCurve)
         .def("removeFromYieldCurve", &BondLibrary::YieldCurve::removeFromYieldCurve);
-    class_<BondLibrary::CashFlow>("CashFlow", init<double, int32_t>());
-    class_<BaseBondWrapper, boost::noncopyable>("BaseBond", init<double, double, int, int, list, int>())
+    class_<Date>("Date", init<const std::string&>());
+    enum_<BondLibrary::Utils::DayCountConvention>("DayCountConvention")
+        .value("30/360", DC::Year360Month30)
+        .value("30/365", DC::Year365Month30)
+        .value("actual/360", DC::Year360MonthActual)
+        .value("actual/365", DC::Year365MonthActual)
+        .value("actual/actual", DC::YearActualMonthActual);
+    class_<BondLibrary::CashFlow>("CashFlow", init<double, Date>((arg("cashflow"), arg("due_date"))));
+    class_<BaseBondWrapper, boost::noncopyable>("BaseBond", init<double, double, Date, Date, list, Date>())
         .def("duration", pure_virtual(&BondLibrary::BaseBond::duration))
         .def("notionalPresentValue", pure_virtual(&BondLibrary::BaseBond::notionalPresentValue));
     class_<BondLibrary::FlatTermBond, bases<BaseBondWrapper>>(
-        "FlatTermBond", init<double, double, int32_t, int32_t, list, int32_t>())
+        "FlatTermBond", init<double, double, Date, Date, list, Date>(
+            (arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"), arg("cashflows")
+             , arg("settlement_date")=BondLibrary::Utils::getCurrentDate() /* + 2 */)
+        ))
         .def("cleanPrice", &BondLibrary::FlatTermBond::cleanPrice)
         .def("dirtyPrice", &BondLibrary::FlatTermBond::dirtyPrice)
         .def("dirtyPriceFromCleanPrice", &BondLibrary::FlatTermBond::dirtyPriceFromCleanPrice)

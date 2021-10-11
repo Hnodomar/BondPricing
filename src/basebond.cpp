@@ -2,31 +2,41 @@
 
 using namespace BondLibrary;
 
-BaseBond::BaseBond(double face_value, double coupon, const Date maturity_date,
- const Date issue_date, const CashFlowsPy& cashflows, const Date settlement_date)
+BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_date,
+ const Utils::Date issue_date, const CashFlowsPy& cashflows, const Utils::Date settlement_date)
   : face_value_(face_value)
   , coupon_(coupon)
   , maturity_date_(maturity_date)
   , issue_date_(issue_date)
   , settlement_date_(settlement_date) {
-    Utils::convertPythonListToVector(
-        cashflows,
-        cashflows_,
-        "Tried to construct bond cashflows without CashFlow objects"
-    );
+    try {
+        const boost::python::ssize_t len = boost::python::len(cashflows);
+        for (auto i = 0; i < len; ++i) {
+            auto element = boost::python::extract<CashFlow>(cashflows[i]);
+            if (element.check()) {
+                cashflows_.push_back(element);
+            }
+            else {
+                throw std::runtime_error("Tried to construct bond cashflow without cashflows");
+            }
+        }
+    }
+    catch (boost::python::error_already_set) {
+        PyErr_Print();
+    }
     std::sort(cashflows_.begin(), cashflows_.end());
     const size_t nflows = cashflows_.size();
     if (nflows >= 2 && cashflows_[nflows -1].cashflow == cashflows_[nflows - 2].cashflow) {
         cashflows_[nflows - 1].cashflow += face_value;
     }
-    if (issue_date_ >= cashflows_[0].due_date)
+    if (cashflows_[0].due_date < issue_date_)
         throw std::runtime_error("Issue date must be earlier than first payment date");
-    else if (maturity_date_ <= issue_date_)
+    else if (maturity_date_ < issue_date_)
         throw std::runtime_error("Maturity date must be later than issue date");
 }
 
-double BaseBond::accruedAmount(Date settlement) const {
-    if (Utils::getCurrentDaysSinceEpoch() > settlement) return 0.0;
+double BaseBond::accruedAmount(Utils::Date settlement) const {
+    /*if (settlement < Utils::getCurrentDate()) return 0.0;
     if (isExpired()) return 0.0;
     const auto curr_cashflow = getCashFlow(settlement);
     if (!curr_cashflow) return 0.0;
@@ -40,10 +50,10 @@ double BaseBond::accruedAmount(Date settlement) const {
     else 
         days_into_period = settlement - prev_cashflow->due_date;
     int32_t cflow_period = curr_cashflow->due_date - (prev_cashflow ? prev_cashflow->due_date : issue_date_);
-    return curr_cashflow->cashflow * (days_into_period / cflow_period);
+    return curr_cashflow->cashflow * (days_into_period / cflow_period);*/
 }
 
-double BaseBond::yieldToMaturity(const double bond_price, const Date date) const {
+double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date) const {
     double precision = 1e-5, froot = 0, dfroot = 0, dx = 0, dx_old = 0, xh = 0, xl = 0;
     double low_bound = 0, up_bound = 1.0;
     size_t max_iterations = 200, curr_iterations = 0;
@@ -91,14 +101,14 @@ double BaseBond::getCurrentYield(double market_price) const {
 }
 
 bool BaseBond::isExpired() const {
-    if (cashflows_.back().due_date < Utils::getCurrentDaysSinceEpoch())
+    if (cashflows_.back().due_date < Utils::getCurrentDate())
         return true;
     return false;
 }
 
-CashFlowOpt BaseBond::getCashFlow(Date date) const {
+CashFlowOpt BaseBond::getCashFlow(Utils::Date date) const {
     for (size_t i = 0; i < cashflows_.size(); ++i) {
-        if (date <= cashflows_[i].due_date)
+        if (date < cashflows_[i].due_date)
             return cashflows_[i];
     }
     return std::nullopt;
@@ -135,6 +145,6 @@ bool BaseBond::outOfRangeOrSlowConvergence(double rate_approx, double dfroot,
         || (std::fabs(2.0 * froot) > std::fabs(dx_old * dfroot));
 }
 
-double BaseBond::modifiedDuration(const double rate, const Date date) const {
-    return duration(rate, date) / (1 + date);
+double BaseBond::modifiedDuration(const double rate, const Utils::Date date) const {
+    //return duration(rate, date) / (1 + date);
 }

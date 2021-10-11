@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <chrono>
 #include <string_view>
+#include <ctime>
 
 namespace BondLibrary {
 namespace Utils {
@@ -17,43 +18,69 @@ enum class DayCountConvention {
 };
 
 struct Date {
-    Date(int day, int month, int year)
-        : day(day), month(month), year(year)
-    {}
+    Date(const std::string& date_str) {
+        if (date_str.empty())
+            throw std::runtime_error("Cannot construct date object from empty string");
+        size_t last_pos = 0;
+        size_t pos = 0;
+        int date_element = 0;
+        for (size_t i = 0; i < 3; ++i) {
+            pos = date_str.find('/', last_pos);
+            if (i != 2 && pos == std::string::npos)
+                throw std::runtime_error("Date object not constructed with correct format");
+            switch (i) {
+                case 0:
+                    date_element = std::stoi(date_str.substr(last_pos, pos - last_pos));
+                    if (date_element < 1 || date_element > 31)
+                        throw std::runtime_error("Date object constructed with bad day number");
+                    day = date_element;
+                    break;
+                case 1:
+                    date_element = std::stoi(date_str.substr(last_pos, pos - last_pos));
+                    if (date_element < 1 || date_element > 12)
+                        throw std::runtime_error("Date object constructed with bad month number");
+                    month = date_element;
+                    break;
+                case 2:
+                    date_element = std::stoi(date_str.substr(last_pos));
+                    if (date_element < 1)
+                        throw std::runtime_error("Date object constructed with bad year number");
+                    year = date_element;
+                    break;
+                default:
+                    break;
+            }
+            last_pos = pos + 1;
+        }
+    }
+    bool operator<(const Date& rhs) const {
+        if (year < rhs.year) 
+            return true;
+        if (year == rhs.year) {
+            if (month < rhs.month)
+                return true;
+            if (month == rhs.month) {
+                if (day < rhs.day)
+                    return true;
+            }
+        }
+        return false;
+    }
+    bool operator==(const Date& rhs) const {
+        return day == rhs.day && month == rhs.month && year == rhs.year;
+    }
+    
     int day;
     int month;
     int year;
 };
 
-inline int32_t getCurrentDaysSinceEpoch() { // current date is number of days since UNIX epoch
-    using namespace std::chrono;
-    using days = duration<int, std::ratio_multiply<
-        hours::period, std::ratio<24>
-    >::type>;
-    return duration_cast<days>(
-        system_clock::now().time_since_epoch()
-    ).count();
+inline Date getCurrentDate() { 
+    std::time_t t = std::time(0);
+    char buf[20] = {0};
+    strftime(buf, sizeof(buf), "%d/%m/%Y", std::localtime(&t));
+    return Date(buf);
 }
-template<typename VectorType>
-inline void convertPythonListToVector(const boost::python::list& list, 
- std::vector<VectorType>& vector, const std::string& msg) {
-    try {
-        const boost::python::ssize_t len = boost::python::len(list);
-        for (auto i = 0; i < len; ++i) {
-            auto element = boost::python::extract<CashFlow>(list[i]);
-            if (element.check()) {
-                vector.push_back(element);
-            }
-            else {
-                throw std::runtime_error(msg);
-            }
-        }
-    }
-    catch (boost::python::error_already_set) {
-        PyErr_Print();
-    }
-}
-
 }
 }
 
