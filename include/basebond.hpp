@@ -49,6 +49,7 @@ protected:
         double xl, 
         double dx_old
     ) const;
+    int getCouponFrequency(const Utils::Date& date) const;
     double face_value_;
     double coupon_;
     Utils::Date maturity_date_;

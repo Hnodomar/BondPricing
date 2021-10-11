@@ -61,13 +61,29 @@ double BaseBond::accruedAmount(Utils::Date settlement) const {
             break;
         case DCV::Year365MonthActual:
             break;
-        case DCV::YearActualMonthActual:
-            dcf = Utils::getJulianDayNumber(settlement) - Utils::getJulianDayNumber(prev_cf_date);
+        case DCV::YearActualMonthActual: {
+            const double date_one = Utils::getJulianDayNumber(prev_cf_date);
+            const double date_two = Utils::getJulianDayNumber(settlement);
+            const double date_three = Utils::getJulianDayNumber(curr_cashflow->due_date);
+            dcf = (date_two - date_one) / (getCouponFrequency(curr_cashflow->due_date) * (date_three - date_one));
             break;
+        }
         default:
             break;
     }
+    std::cout << dcf << std::endl;
     return round(dcf * coupon_ * 100.0) / 100.0;
+}
+
+int BaseBond::getCouponFrequency(const Utils::Date& date) const {
+    Utils::Date next_year = date;
+    next_year.year += 1;
+    int frequency = 1;
+    for (const auto& cashflow : cashflows_) {
+        if (date < cashflow.due_date && cashflow.due_date < next_year)
+            ++frequency;
+    }
+    return frequency;
 }
 
 double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date) const {
