@@ -9,6 +9,7 @@ A simple Corporate and Treasury bond pricing library. The library provides an in
 * Dirty and Clean pricing
 * Yield to Maturity (YTM) Safe-Newton approximations
 * Flat and General Term Structure
+* 30/360, 30/365, actual/360, actual/365 and actual/actual day-count conventions
 
 ## Usage
 
