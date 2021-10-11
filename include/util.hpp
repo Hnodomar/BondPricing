@@ -81,6 +81,11 @@ inline Date getCurrentDate() {
     strftime(buf, sizeof(buf), "%d/%m/%Y", std::localtime(&t));
     return Date(buf);
 }
+
+inline int getJulianDayNumber(const Date& date) {
+    return 367 * date.year - (7 * (date.year + 5001 + (date.month - 9) / 7) / 4)
+        + (275 * date.month) / 9 + date.day + 1729777;
+}
 }
 }
 

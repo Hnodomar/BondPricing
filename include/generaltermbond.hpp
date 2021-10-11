@@ -16,7 +16,8 @@ public:
         const Utils::Date issue_date,
         const CashFlowsPy& cashflows,
         const Utils::Date settlement_date,
-        YieldCurve& yield_curve
+        YieldCurve& yield_curve,
+        const Utils::DayCountConvention
     );
     double cleanPrice(const Utils::Date date) const;
     double dirtyPrice(const Utils::Date date) const;

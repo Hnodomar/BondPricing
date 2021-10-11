@@ -10,8 +10,9 @@ using DC = BondLibrary::Utils::DayCountConvention;
 
 struct BaseBondWrapper : ::BondLibrary::BaseBond, wrapper<BondLibrary::BaseBond> {
     BaseBondWrapper(const double f, const double c, const Date md, 
-     const Date id, const BondLibrary::CashFlowsPy& cfs, const Date sd)
-        : ::BondLibrary::BaseBond(f, c, md, id, cfs, sd)
+     const Date id, const BondLibrary::CashFlowsPy& cfs, const Date sd,
+     const DC dcv)
+        : ::BondLibrary::BaseBond(f, c, md, id, cfs, sd, dcv)
     {}
     double duration(const double rate, const Date date) const {
         return this->get_override("duration")(rate, date);
@@ -31,22 +32,23 @@ BOOST_PYTHON_MODULE(BondPricing) {
         .def("removeFromYieldCurve", &BondLibrary::YieldCurve::removeFromYieldCurve);
     class_<Date>("Date", init<const std::string&>());
     enum_<BondLibrary::Utils::DayCountConvention>("DayCountConvention")
-        .value("30/360", DC::Year360Month30)
-        .value("30/365", DC::Year365Month30)
-        .value("actual/360", DC::Year360MonthActual)
-        .value("actual/365", DC::Year365MonthActual)
-        .value("actual/actual", DC::YearActualMonthActual);
+        .value("Year360Month30", DC::Year360Month30)
+        .value("Year365Month30", DC::Year365Month30)
+        .value("Year360MonthActual", DC::Year360MonthActual)
+        .value("Year365MonthActual", DC::Year365MonthActual)
+        .value("YearActualMonthActual", DC::YearActualMonthActual);
     class_<BondLibrary::CashFlow>("CashFlow", init<double, Date>((arg("cashflow"), arg("due_date"))));
-    class_<BaseBondWrapper, boost::noncopyable>("BaseBond", init<double, double, Date, Date, list, Date>())
+    class_<BaseBondWrapper, boost::noncopyable>("BaseBond", init<double, double, Date, Date, list, Date, DC>())
         .def("duration", pure_virtual(&BondLibrary::BaseBond::duration))
         .def("notionalPresentValue", pure_virtual(&BondLibrary::BaseBond::notionalPresentValue));
     class_<BondLibrary::FlatTermBond, bases<BaseBondWrapper>>(
-        "FlatTermBond", init<double, double, Date, Date, list, Date>(
+        "FlatTermBond", init<double, double, Date, Date, list, Date, DC>(
             (arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"), arg("cashflows")
-             , arg("settlement_date")=BondLibrary::Utils::getCurrentDate() /* + 2 */)
+             , arg("settlement_date")=BondLibrary::Utils::getCurrentDate() /* + 2 */
+             , arg("dc_convention")=DC::YearActualMonthActual)
         ))
         .def("cleanPrice", &BondLibrary::FlatTermBond::cleanPrice)
-        .def("dirtyPrice", &BondLibrary::FlatTermBond::dirtyPrice)
+        .def("dirtyPrice", &BondLibrary::FlatTermBond::dirtyPrice, (arg("rate"), arg("date")))
         .def("dirtyPriceFromCleanPrice", &BondLibrary::FlatTermBond::dirtyPriceFromCleanPrice)
         .def("duration", &BondLibrary::FlatTermBond::duration)
         .def("isExpired", &BondLibrary::BaseBond::isExpired);

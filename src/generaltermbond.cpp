@@ -3,8 +3,9 @@
 using namespace BondLibrary;
 
 GeneralTermBond::GeneralTermBond(double face_value, double coupon, const Utils::Date maturity_date,
- const Utils::Date issue_date, const CashFlowsPy& cashflows, const Utils::Date settlement_date, YieldCurve& yield_curve)
-  : BaseBond(face_value, coupon, maturity_date, issue_date, cashflows, settlement_date)
+ const Utils::Date issue_date, const CashFlowsPy& cashflows, const Utils::Date settlement_date, 
+ YieldCurve& yield_curve, const Utils::DayCountConvention daycount_convention)
+  : BaseBond(face_value, coupon, maturity_date, issue_date, cashflows, settlement_date, daycount_convention)
   , yield_curve_(yield_curve)
 {}
 

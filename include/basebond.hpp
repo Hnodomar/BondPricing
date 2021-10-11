@@ -24,7 +24,8 @@ public:
         const Utils::Date maturity_date,
         const Utils::Date issue_date,
         const CashFlowsPy& cashflows,
-        const Utils::Date settlement_date
+        const Utils::Date settlement_date,
+        const Utils::DayCountConvention daycount_convention
     );
     virtual ~BaseBond() {}
     double accruedAmount(Utils::Date settlement) const;
@@ -54,6 +55,7 @@ protected:
     Utils::Date issue_date_;
     Utils::Date settlement_date_;
     CashFlows cashflows_;
+    Utils::DayCountConvention daycount_convention_;
 };
 }
 

@@ -1,14 +1,17 @@
 #include "basebond.hpp"
+#include <iostream>
 
 using namespace BondLibrary;
 
 BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_date,
- const Utils::Date issue_date, const CashFlowsPy& cashflows, const Utils::Date settlement_date)
+ const Utils::Date issue_date, const CashFlowsPy& cashflows, const Utils::Date settlement_date,
+ const Utils::DayCountConvention daycount_convention)
   : face_value_(face_value)
   , coupon_(coupon)
   , maturity_date_(maturity_date)
   , issue_date_(issue_date)
-  , settlement_date_(settlement_date) {
+  , settlement_date_(settlement_date)
+  , daycount_convention_(daycount_convention) {
     try {
         const boost::python::ssize_t len = boost::python::len(cashflows);
         for (auto i = 0; i < len; ++i) {
@@ -25,6 +28,7 @@ BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_
         PyErr_Print();
     }
     std::sort(cashflows_.begin(), cashflows_.end());
+    std::reverse(cashflows_.begin(), cashflows_.end());
     const size_t nflows = cashflows_.size();
     if (nflows >= 2 && cashflows_[nflows -1].cashflow == cashflows_[nflows - 2].cashflow) {
         cashflows_[nflows - 1].cashflow += face_value;
@@ -36,21 +40,34 @@ BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_
 }
 
 double BaseBond::accruedAmount(Utils::Date settlement) const {
-    /*if (settlement < Utils::getCurrentDate()) return 0.0;
-    if (isExpired()) return 0.0;
-    const auto curr_cashflow = getCashFlow(settlement);
-    if (!curr_cashflow) return 0.0;
-    if (settlement == curr_cashflow->due_date) {
-        return 0.0;
+    using DCV = Utils::DayCountConvention;
+    double dcf = 0.0;
+    const auto& curr_cashflow = getCashFlow(settlement);
+    if (!curr_cashflow)
+        throw std::runtime_error("Tried to get cash flow for date beyond bond maturity");
+    const auto& prev_cashflow = getPreviousCashFlow(*curr_cashflow);
+    const Utils::Date& prev_cf_date = prev_cashflow ? prev_cashflow->due_date : issue_date_; 
+    if (settlement < prev_cf_date)
+        throw std::runtime_error("Cannot accrue interest for a date before the previous cashflow");
+    switch (daycount_convention_) {
+        case DCV::Year360Month30:
+            dcf = (360.0 * (settlement.year - prev_cf_date.year) 
+                + 30.0 * (settlement.month - prev_cf_date.month)
+                + (settlement.day - prev_cf_date.day)) / 360.0;
+            break;
+        case DCV::Year365Month30:
+            break;
+        case DCV::Year360MonthActual:
+            break;
+        case DCV::Year365MonthActual:
+            break;
+        case DCV::YearActualMonthActual:
+            dcf = Utils::getJulianDayNumber(settlement) - Utils::getJulianDayNumber(prev_cf_date);
+            break;
+        default:
+            break;
     }
-    const auto prev_cashflow = getPreviousCashFlow(*curr_cashflow);
-    int32_t days_into_period = 0;
-    if (!prev_cashflow) 
-        days_into_period = issue_date_;
-    else 
-        days_into_period = settlement - prev_cashflow->due_date;
-    int32_t cflow_period = curr_cashflow->due_date - (prev_cashflow ? prev_cashflow->due_date : issue_date_);
-    return curr_cashflow->cashflow * (days_into_period / cflow_period);*/
+    return round(dcf * coupon_ * 100.0) / 100.0;
 }
 
 double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date) const {

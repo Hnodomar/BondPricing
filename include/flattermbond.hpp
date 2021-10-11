@@ -12,7 +12,8 @@ public:
         const Utils::Date maturity_date,
         const Utils::Date issue_date, 
         const CashFlowsPy& cashflows, 
-        Utils::Date settlement_date
+        Utils::Date settlement_date,
+        const Utils::DayCountConvention
     );
     double cleanPrice(const double rate, const Utils::Date date) const;
     double dirtyPrice(const double rate, const Utils::Date date) const;
