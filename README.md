@@ -13,7 +13,36 @@ A simple Corporate and Treasury bond pricing library. The library provides an in
 
 ## Usage
 
-TO-DO
+```python
+from BondPricing import *
+import pandas as pd
+
+xls = pd.ExcelFile('spotcurve/GLC Nominal daily data current month.xlsx')
+df = pd.read_excel(xls, '4. spot curve')
+    
+curve = YieldCurve([
+    YieldCurvePoint(
+        maturity = df.iat[2, x],
+        bond_yield = df.iat[4, x]
+    ) for x in range(1, len(df.columns))
+])
+
+gt_bond = GeneralTermBond(
+    face_value = 1000,
+    coupon = 20,
+    cashflows = [
+        CashFlow(20, Date('01/01/202{}'.format(x))) for x in range(2, 17)
+    ],
+    maturity_date = Date('01/01/2036'),
+    issue_date = Date('01/01/2021'),
+    yield_curve = curve,
+    dc_convention = DayCountConvention.YearActualMonthActual
+)
+
+clean_price = gt_bond.cleanPrice(Date('01/01/2021'))
+print(clean_price)
+print(gt_bond.yieldToMaturity(clean_price, Date('01/01/2021')))
+```
 
 ## Building The Bond Pricing Library
 
