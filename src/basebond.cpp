@@ -3,9 +3,9 @@
 
 using namespace BondLibrary;
 
-BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_date,
- const Utils::Date issue_date, const CashFlowsPy& cashflows, const Utils::Date settlement_date,
- const Utils::DayCountConvention daycount_convention)
+BaseBond::BaseBond(double face_value, double coupon, const Date maturity_date,
+ const Date issue_date, const CashFlowsPy& cashflows, const Date settlement_date,
+ const DayCountConvention daycount_convention)
   : face_value_(face_value)
   , coupon_(coupon)
   , maturity_date_(maturity_date)
@@ -39,14 +39,14 @@ BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_
         throw std::runtime_error("Maturity date must be later than issue date");
 }
 
-double BaseBond::accruedAmount(Utils::Date settlement) const {
-    using DCV = Utils::DayCountConvention;
+double BaseBond::accruedAmount(Date settlement) const {
+    using DCV = DayCountConvention;
     double dcf = 0.0;
     const auto& curr_cashflow = getCashFlow(settlement);
     if (!curr_cashflow)
         throw std::runtime_error("Tried to get cash flow for date beyond bond maturity");
     const auto& prev_cashflow = getPreviousCashFlow(*curr_cashflow);
-    const Utils::Date& prev_cf_date = prev_cashflow ? prev_cashflow->due_date : issue_date_; 
+    const Date& prev_cf_date = prev_cashflow ? prev_cashflow->due_date : issue_date_; 
     if (settlement < prev_cf_date)
         throw std::runtime_error("Cannot accrue interest for a date before the previous cashflow");
     switch (daycount_convention_) {
@@ -62,9 +62,9 @@ double BaseBond::accruedAmount(Utils::Date settlement) const {
         case DCV::Year365MonthActual:
             break;
         case DCV::YearActualMonthActual: {
-            const double date_one = Utils::getJulianDayNumber(prev_cf_date);
-            const double date_two = Utils::getJulianDayNumber(settlement);
-            const double date_three = Utils::getJulianDayNumber(curr_cashflow->due_date);
+            const double date_one = getJulianDayNumber(prev_cf_date);
+            const double date_two = getJulianDayNumber(settlement);
+            const double date_three = getJulianDayNumber(curr_cashflow->due_date);
             dcf = (date_two - date_one) / (getCouponFrequency(curr_cashflow->due_date) * (date_three - date_one));
             break;
         }
@@ -74,8 +74,8 @@ double BaseBond::accruedAmount(Utils::Date settlement) const {
     return round(dcf * coupon_ * 100.0) / 100.0;
 }
 
-int BaseBond::getCouponFrequency(const Utils::Date& date) const {
-    Utils::Date next_year = date;
+int BaseBond::getCouponFrequency(const Date& date) const {
+    Date next_year = date;
     next_year.year += 1;
     int frequency = 1;
     for (const auto& cashflow : cashflows_) {
@@ -85,7 +85,7 @@ int BaseBond::getCouponFrequency(const Utils::Date& date) const {
     return frequency;
 }
 
-double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date) const {
+double BaseBond::yieldToMaturity(const double bond_price, const Date date) const {
     std::cout << bond_price << std::endl;
     double precision = 1e-5, froot = 0, dfroot = 0, dx = 0, dx_old = 0, xh = 0, xl = 0;
     double low_bound = 0, up_bound = 1.0;
@@ -133,7 +133,7 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
     throw std::runtime_error("Maximum iterations exceeded on yield to maturity Safe-Newton approximation");
 }
 
-double BaseBond::notionalPresentValue(const double rate, Utils::Date date) const {
+double BaseBond::notionalPresentValue(const double rate, Date date) const {
     double npv = 0.0;
     auto t = 1;
     for (size_t i = 0; i < cashflows_.size(); ++i) {
@@ -152,12 +152,12 @@ double BaseBond::getCurrentYield(double market_price) const {
 }
 
 bool BaseBond::isExpired() const {
-    if (cashflows_.back().due_date < Utils::getCurrentDate())
+    if (cashflows_.back().due_date < getCurrentDate())
         return true;
     return false;
 }
 
-CashFlowOpt BaseBond::getCashFlow(Utils::Date date) const {
+CashFlowOpt BaseBond::getCashFlow(Date date) const {
     for (size_t i = 0; i < cashflows_.size(); ++i) {
         if (date < cashflows_[i].due_date)
             return cashflows_[i];
@@ -196,6 +196,6 @@ bool BaseBond::outOfRangeOrSlowConvergence(double rate_approx, double dfroot,
         || (std::fabs(2.0 * froot) > std::fabs(dx_old * dfroot));
 }
 
-double BaseBond::modifiedDuration(const double rate, const Utils::Date date) const {
+double BaseBond::modifiedDuration(const double rate, const Date date) const {
     return duration(rate, date) / (1.0 + rate);
 }

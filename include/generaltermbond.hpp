@@ -13,25 +13,25 @@ public:
     GeneralTermBond(
         double face_value,
         double coupon,
-        const Utils::Date maturity_date,
-        const Utils::Date issue_date,
+        const Date maturity_date,
+        const Date issue_date,
         const CashFlowsPy& cashflows,
-        const Utils::Date settlement_date,
+        const Date settlement_date,
         YieldCurve& yield_curve,
-        const Utils::DayCountConvention
+        const DayCountConvention
     );
-    double cleanPrice(const Utils::Date date) const;
-    double dirtyPrice(const Utils::Date date) const;
-    //double dirtyPrice(const double market_price, const Utils::Date date) const;
-    double getDuration(const Utils::Date date) const;
-    double duration(const double rate, const Utils::Date date) const override;
+    double cleanPrice(const Date date) const;
+    double dirtyPrice(const Date date) const;
+    //double dirtyPrice(const double market_price, const Date date) const;
+    double getDuration(const Date date) const;
+    double duration(const double rate, const Date date) const override;
     void setYieldCurve(YieldCurve& yc) const {yield_curve_ = yc;}
     YieldCurve& getYieldCurve() const {return yield_curve_;}
 private:
-    int yearsAccrued(const Utils::Date& date) const;
-    double getYearFraction(const Utils::Date& date) const;
+    int yearsAccrued(const Date& date) const;
+    double getYearFraction(const Date& date) const;
     double discountFactorFromYield(const double rate, const double time) const;
-    double valueBasedOnYieldCurve(const double rate, Utils::Date date) const;
+    double valueBasedOnYieldCurve(const double rate, Date date) const;
     double performLinearInterpolation(const double time) const;
     static const std::vector<double> month_days_;
     YieldCurve& yield_curve_;

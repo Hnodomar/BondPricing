@@ -9,16 +9,16 @@ public:
     FlatTermBond(
         double face_value, 
         double coupon, 
-        const Utils::Date maturity_date,
-        const Utils::Date issue_date, 
+        const Date maturity_date,
+        const Date issue_date, 
         const CashFlowsPy& cashflows, 
-        Utils::Date settlement_date,
-        const Utils::DayCountConvention
+        Date settlement_date,
+        const DayCountConvention
     );
-    double cleanPrice(const double rate, const Utils::Date date) const;
-    double dirtyPrice(const double rate, const Utils::Date date) const;
-    double dirtyPriceFromCleanPrice(const double market_price, const Utils::Date date) const;
-    double duration(const double rate, const Utils::Date date) const override;
+    double cleanPrice(const double rate, const Date date) const;
+    double dirtyPrice(const double rate, const Date date) const;
+    double dirtyPriceFromCleanPrice(const double market_price, const Date date) const;
+    double duration(const double rate, const Date date) const override;
 };
 }
 

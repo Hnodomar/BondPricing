@@ -1,12 +1,12 @@
 #include <boost/python.hpp>
 #include "yieldcurve.hpp"
 #include "flattermbond.hpp"
-#include "util.hpp"
+#include "date.hpp"
 #include "generaltermbond.hpp"
 
 using namespace boost::python;
-using Date = BondLibrary::Utils::Date;
-using DC = BondLibrary::Utils::DayCountConvention;
+using Date = BondLibrary::Date;
+using DC = BondLibrary::DayCountConvention;
 
 struct BaseBondWrapper : ::BondLibrary::BaseBond, wrapper<BondLibrary::BaseBond> {
     BaseBondWrapper(const double f, const double c, const Date md, 
@@ -28,7 +28,7 @@ BOOST_PYTHON_MODULE(BondPricing) {
         .def("addToYieldCurve", &BondLibrary::YieldCurve::addToYieldCurve)
         .def("removeFromYieldCurve", &BondLibrary::YieldCurve::removeFromYieldCurve);
     class_<Date>("Date", init<const std::string&>());
-    enum_<BondLibrary::Utils::DayCountConvention>("DayCountConvention")
+    enum_<BondLibrary::DayCountConvention>("DayCountConvention")
         .value("Year360Month30", DC::Year360Month30)
         .value("Year365Month30", DC::Year365Month30)
         .value("Year360MonthActual", DC::Year360MonthActual)
@@ -41,7 +41,7 @@ BOOST_PYTHON_MODULE(BondPricing) {
     class_<BondLibrary::FlatTermBond, bases<BaseBondWrapper>>(
         "FlatTermBond", init<double, double, Date, Date, list, Date, DC>((
             arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"), 
-            arg("cashflows"), arg("settlement_date")=BondLibrary::Utils::getCurrentDate() + 2, 
+            arg("cashflows"), arg("settlement_date")=BondLibrary::getCurrentDate() + 2, 
             arg("dc_convention")=DC::YearActualMonthActual
         )))
         .def("cleanPrice", &BondLibrary::FlatTermBond::cleanPrice)
@@ -53,7 +53,7 @@ BOOST_PYTHON_MODULE(BondPricing) {
     class_<BondLibrary::GeneralTermBond, bases<BaseBondWrapper>>(
         "GeneralTermBond", init<double, double, Date, Date, list&, Date, BondLibrary::YieldCurve&, DC>((
             arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"),
-            arg("cashflows"), arg("settlement_date")=BondLibrary::Utils::getCurrentDate() + 2, 
+            arg("cashflows"), arg("settlement_date")=BondLibrary::getCurrentDate() + 2, 
             arg("yield_curve"), arg("dc_convention")=DC::YearActualMonthActual
         )))
         .def("cleanPrice", &BondLibrary::GeneralTermBond::cleanPrice)

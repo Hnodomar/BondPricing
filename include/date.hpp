@@ -1,5 +1,5 @@
-#ifndef UTIL_HPP
-#define UTIL_HPP
+#ifndef DATE_HPP
+#define DATE_HPP
 
 #include <cstdint>
 #include <chrono>
@@ -7,8 +7,6 @@
 #include <ctime>
 
 namespace BondLibrary {
-namespace Utils {
-
 enum class DayCountConvention {
     Year360Month30,
     Year365Month30,
@@ -117,7 +115,6 @@ inline Date getCurrentDate() {
 inline int getJulianDayNumber(const Date& date) {
     return 367 * date.year - (7 * (date.year + 5001 + (date.month - 9) / 7) / 4)
         + (275 * date.month) / 9 + date.day + 1729777;
-}
 }
 }
 
