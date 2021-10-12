@@ -13,6 +13,8 @@ A simple Corporate and Treasury bond pricing library. The library provides an in
 
 ## Usage
 
+The library is simple to use. For example, to price a bond with a 40 year maturity and 2% annual coupon using a UK gilt (government bond) yield curve provided by the Bank of England, the library is used as below:
+
 ```python
 from BondPricing import *
 import pandas as pd
@@ -45,6 +47,17 @@ print(gt_bond.yieldToMaturity(clean_price, Date('01/01/2021')))
 ```
 
 ## Building The Bond Pricing Library
+
+The library is built with the usual CMake build pattern, from the project root directory:
+
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+This will build the target BondPricing.so. You can 'import BondPricing' with any Python3 script just like any other module and use the library.
 
 Note that this library uses Python3 in its linkage with Boost::Python, and a Boost Configuration of Python3 is required (by default, Boost builds with Python2).
 
