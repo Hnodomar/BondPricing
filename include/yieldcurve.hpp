@@ -10,12 +10,12 @@
 
 namespace BondLibrary {
 struct YieldCurvePoint {
-    YieldCurvePoint(int maturity, double yield)
+    YieldCurvePoint(double maturity, double yield)
         : maturity(maturity), yield(yield) {}
     bool operator==(const YieldCurvePoint& rhs) {
         return maturity == rhs.maturity && yield == rhs.yield;
     }
-    int maturity;
+    double maturity;
     double yield;
 };
 class YieldCurve {
@@ -38,7 +38,7 @@ public:
                 throw std::runtime_error("Tried to remove a Yield Curve element that was not a YieldCurvePoint");
             }
         }
-        catch (boost::python::error_already_set) {
+        catch (const boost::python::error_already_set&) {
             PyErr_Print();
         }
     }
@@ -57,7 +57,7 @@ private:
                 }
             }
         }
-        catch (boost::python::error_already_set) {
+        catch (const boost::python::error_already_set&) {
             PyErr_Print();
         }
     }

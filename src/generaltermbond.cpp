@@ -9,57 +9,65 @@ GeneralTermBond::GeneralTermBond(double face_value, double coupon, const Utils::
   , yield_curve_(yield_curve)
 {}
 
+const std::vector<double> GeneralTermBond::month_days_ = {
+    0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 
+};
+
 double GeneralTermBond::cleanPrice(const Utils::Date date) const {
     if (isExpired()) return 0.0;
-    return notionalPresentValue(0, date);
+    return valueBasedOnYieldCurve(0, date);
 }
 
 double GeneralTermBond::dirtyPrice(const Utils::Date date) const {
     if (isExpired()) return 0.0;
-    return notionalPresentValue(0, date) + accruedAmount(date);
+    return round((valueBasedOnYieldCurve(0, date) + accruedAmount(date)) * 100.0) / 100.0;
 }
-
+/*
 double GeneralTermBond::dirtyPrice(const double market_price, const Utils::Date date) const {
     if (isExpired()) return 0.0;
     return market_price + accruedAmount(date);
 }
+*/
 
-double GeneralTermBond::notionalPresentValue(const double, Utils::Date date) const {
-  /*  double npv = 0.0;
-    Utils::Date time = 0;
+double GeneralTermBond::valueBasedOnYieldCurve(const double, Utils::Date date) const {
+    double npv = 0.0;
+    size_t t = 1;
     for (size_t i = 0; i < cashflows_.size(); ++i) {
-        if (date > cashflows_[i].due_date) continue;
-        time = cashflows_[i].due_date;
-        npv += discountFactorFromYield(performLinearInterpolation(time), time) * cashflows_[i].cashflow;
+        if (cashflows_[i].due_date < date) continue;
+        npv += discountFactorFromYield(performLinearInterpolation(
+            getYearFraction(cashflows_[i].due_date) + yearsAccrued(cashflows_[i].due_date)
+        ), t) * cashflows_[i].cashflow;
+        ++t;
     }
-    return npv;*/
+    return round((npv * 100.0)) / 100.0;
 }
 
 double GeneralTermBond::duration(const double, Utils::Date date) const {
-  /*  double s = 0.0, d1 = 0.0;
+    double s = 0.0, d1 = 0.0;
     double dfactor = 0.0;
-    Utils::Date time = 0;
+    int t = 1;
     for (size_t i = 0; i < cashflows_.size(); ++i) {
-        if (date > cashflows_[i].due_date) continue;
-        time = cashflows_[i].due_date;
-        dfactor = discountFactorFromYield(performLinearInterpolation(time), time);
+        if (cashflows_[i].due_date < date) continue;
+        dfactor = discountFactorFromYield(
+            performLinearInterpolation(getYearFraction(cashflows_[i].due_date) + yearsAccrued(cashflows_[i].due_date)
+        ), t);
         s += cashflows_[i].cashflow * dfactor;
-        d1 += time * cashflows_[i].cashflow * dfactor;
+        d1 += t * cashflows_[i].cashflow * dfactor;
+        ++t;
     }
     return d1 / s;
-    */
 }
 
-double GeneralTermBond::duration(const Utils::Date date) const {
-    return duration(0, date);
+double GeneralTermBond::getDuration(const Utils::Date date) const {
+    return round(duration(0, date) * 100.0) / 100.0;
 }
 
-double GeneralTermBond::discountFactorFromYield(const double rate, const Utils::Date time) const {
-   // return exp(-rate * time);
+double GeneralTermBond::discountFactorFromYield(const double rate, const double time) const {
+    return exp(-rate * time);
 }
 
-double GeneralTermBond::performLinearInterpolation(const Utils::Date time) const {
-    /*const auto yield_curve = yield_curve_.getYieldCurve(); // Yields are in increasing time to maturity order
+double GeneralTermBond::performLinearInterpolation(const double time) const {
+    const auto& yield_curve = yield_curve_.getYieldCurve(); // Yields are in increasing time to maturity order
     if (yield_curve.size() < 1) return 0.0;
     auto t_min = yield_curve[0].maturity;
     const auto& curve_max = yield_curve[yield_curve.size() - 1];
@@ -69,30 +77,20 @@ double GeneralTermBond::performLinearInterpolation(const Utils::Date time) const
     else if (time >= curve_max.maturity) {
         return curve_max.yield;
     }
-    int t = 1;
+    size_t t = 1;
     while (t < yield_curve.size() && time > yield_curve[t].maturity)
         ++t;
     double lambda = (yield_curve[t].maturity - time) / (yield_curve[t].maturity - yield_curve[t - 1].maturity);
-    return yield_curve[t - 1].yield * lambda + yield_curve[t].yield * (1.0 - lambda);*/
+    return yield_curve[t - 1].yield * lambda + yield_curve[t].yield * (1.0 - lambda);
 }
 
-/*
-double Bond::yieldToMaturity(const double bond_price, const Date date) const {
-    double low_bound = 0, up_bound = 1.0;
-    size_t max_iterations = 200;
-    double precision = 1e-5;
-    while (discreteBondPrice(up_bound, date) > bond_price)
-        up_bound *= 2;
-    double rate_approx = 0.5 * up_bound;
-    for (auto i = 0; i < max_iterations; ++i) {
-        double diff = discreteBondPrice(rate_approx, date) - bond_price;
-        if (fabs(diff) < precision)
-            return rate_approx;
-        if (diff > 0.0)
-            low_bound = rate_approx;
-        else
-            up_bound = rate_approx;
-        rate_approx = 0.5 * (up_bound + low_bound);
-    }
-    return rate_approx;
-}*/
+double GeneralTermBond::getYearFraction(const Utils::Date& date) const {
+    double frac = 0.0;
+    for (int i = 0; i < date.month; ++i)
+        frac += GeneralTermBond::month_days_[i];
+    return (frac + static_cast<double>(date.day - 1)) / 365.0;
+}
+
+int GeneralTermBond::yearsAccrued(const Utils::Date& date) const {
+    return abs(date.year - cashflows_[0].due_date.year + 1); // year 0 counts as 'year 1'
+}

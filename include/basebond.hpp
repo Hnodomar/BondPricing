@@ -39,7 +39,7 @@ public:
     CashFlowOpt getNextCashFlow(const CashFlow& cashflow) const;
     CashFlowOpt getPreviousCashFlow(const CashFlow& cashflow) const;
     virtual double duration(const double rate, const Utils::Date date) const = 0;
-    virtual double notionalPresentValue(const double rate, Utils::Date date) const = 0; 
+    double notionalPresentValue(const double rate, Utils::Date date) const; 
 protected:
     bool outOfRangeOrSlowConvergence(
         double rate_approx,

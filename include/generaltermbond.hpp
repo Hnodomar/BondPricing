@@ -1,6 +1,7 @@
 #ifndef GENERAL_TERM_BOND_HPP
 #define GENERAL_TERM_BOND_HPP
 
+#include <vector>
 #include <cmath>
 
 #include "basebond.hpp"
@@ -21,15 +22,18 @@ public:
     );
     double cleanPrice(const Utils::Date date) const;
     double dirtyPrice(const Utils::Date date) const;
-    double dirtyPrice(const double market_price, const Utils::Date date) const;
-    double duration(const Utils::Date date) const;
+    //double dirtyPrice(const double market_price, const Utils::Date date) const;
+    double getDuration(const Utils::Date date) const;
+    double duration(const double rate, const Utils::Date date) const override;
     void setYieldCurve(YieldCurve& yc) const {yield_curve_ = yc;}
     YieldCurve& getYieldCurve() const {return yield_curve_;}
 private:
-    double discountFactorFromYield(const double rate, const Utils::Date time) const;
-    double duration(const double rate, const Utils::Date date) const override;
-    double notionalPresentValue(const double rate, Utils::Date date) const override;
-    double performLinearInterpolation(const Utils::Date time) const;
+    int yearsAccrued(const Utils::Date& date) const;
+    double getYearFraction(const Utils::Date& date) const;
+    double discountFactorFromYield(const double rate, const double time) const;
+    double valueBasedOnYieldCurve(const double rate, Utils::Date date) const;
+    double performLinearInterpolation(const double time) const;
+    static const std::vector<double> month_days_;
     YieldCurve& yield_curve_;
 };
 }

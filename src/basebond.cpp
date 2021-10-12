@@ -24,7 +24,7 @@ BaseBond::BaseBond(double face_value, double coupon, const Utils::Date maturity_
             }
         }
     }
-    catch (boost::python::error_already_set) {
+    catch (const boost::python::error_already_set&) {
         PyErr_Print();
     }
     std::sort(cashflows_.begin(), cashflows_.end());
@@ -71,7 +71,6 @@ double BaseBond::accruedAmount(Utils::Date settlement) const {
         default:
             break;
     }
-    std::cout << dcf << std::endl;
     return round(dcf * coupon_ * 100.0) / 100.0;
 }
 
@@ -87,6 +86,7 @@ int BaseBond::getCouponFrequency(const Utils::Date& date) const {
 }
 
 double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date) const {
+    std::cout << bond_price << std::endl;
     double precision = 1e-5, froot = 0, dfroot = 0, dx = 0, dx_old = 0, xh = 0, xl = 0;
     double low_bound = 0, up_bound = 1.0;
     size_t max_iterations = 200, curr_iterations = 0;
@@ -107,7 +107,6 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
     froot = notionalPresentValue(rate_approx, date) - bond_price;
     dfroot = modifiedDuration(rate_approx, date);
     ++curr_iterations;
-    std::cout << low_bound << " " << up_bound << " " << froot << " " << dfroot << " " << dx << std::endl;
     while (curr_iterations <= max_iterations) {
         bool use_bisection = outOfRangeOrSlowConvergence(rate_approx, dfroot, froot, xh, xl, dx_old);
         if (use_bisection) {
@@ -121,7 +120,7 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
             rate_approx -= dx;
         }
         if (std::fabs(dx) < precision) {
-            return round(rate_approx * 100) / 100;
+            return round(rate_approx * 10000.0) / 10000.0;
         }
         froot = notionalPresentValue(rate_approx, date) - bond_price;
         dfroot = modifiedDuration(rate_approx, date);
@@ -132,6 +131,16 @@ double BaseBond::yieldToMaturity(const double bond_price, const Utils::Date date
             xh = rate_approx;
     }
     throw std::runtime_error("Maximum iterations exceeded on yield to maturity Safe-Newton approximation");
+}
+
+double BaseBond::notionalPresentValue(const double rate, Utils::Date date) const {
+    double npv = 0.0;
+    auto t = 1;
+    for (size_t i = 0; i < cashflows_.size(); ++i) {
+        if (cashflows_[i].due_date < date) continue;
+        npv += cashflows_[i].cashflow / (pow(1 + rate, t++));
+    }
+    return round(npv * 100.0) / 100.0; 
 }
 
 double BaseBond::getCouponRate() const {

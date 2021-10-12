@@ -73,10 +73,39 @@ struct Date {
         lhs << rhs.year << " " << rhs.month << " " << rhs.day << std::endl;
         return lhs;
     }
+    friend Date operator+(const Date date, const int value);
+    friend Date operator+(int value, const Date date) {
+        return date + value;
+    }
     int day;
     int month;
     int year;
 };
+
+inline int dayNumberFromDate(int day, int month, int year) {
+    month = (month + 9) % 12;
+    year = year - month/10;
+    return 365*year + year/4 - year/100 + year/400 + (month*306 + 5)/10 + (day - 1);
+}
+
+inline Date dateFromDayNumber(int num_days) {
+    int years = (10000* num_days + 14780) / 3652425;
+    int ddd = num_days - (365 * years + years / 4 - years / 100 + years / 400);
+    if (ddd < 0) {
+        years = years - 1;
+        ddd = num_days - (365 * years + years / 4 - years / 100 + years / 400);
+    }
+    int mi = (100 * ddd + 52 ) / 3060;
+    int mm = (mi + 2) % 12 + 1;
+    years = years + (mi + 2) / 12;
+    int dd = ddd - (mi * 306 + 5) / 10 + 1;
+    return Date(std::to_string(dd) + "/" + std::to_string(mm) + "/" + std::to_string(years));
+}
+
+inline Date operator+(const Date date, const int value) {
+    return dateFromDayNumber(dayNumberFromDate(date.day, date.month, date.year) + value);
+} 
+
 
 inline Date getCurrentDate() { 
     std::time_t t = std::time(0);

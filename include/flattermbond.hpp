@@ -19,8 +19,6 @@ public:
     double dirtyPrice(const double rate, const Utils::Date date) const;
     double dirtyPriceFromCleanPrice(const double market_price, const Utils::Date date) const;
     double duration(const double rate, const Utils::Date date) const override;
-private:
-    double notionalPresentValue(const double rate, Utils::Date date) const override;
 };
 }
 

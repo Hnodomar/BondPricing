@@ -17,15 +17,10 @@ struct BaseBondWrapper : ::BondLibrary::BaseBond, wrapper<BondLibrary::BaseBond>
     double duration(const double rate, const Date date) const {
         return this->get_override("duration")(rate, date);
     }
-    double notionalPresentValue(const double rate, Date date) const {
-        return this->get_override("notionalPresentValue")(rate, date);
-    }
 };
 
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(ytm_overloads, BondLibrary::BaseBond::yieldToMaturity, 1, 2);
-
 BOOST_PYTHON_MODULE(BondPricing) {
-    class_<BondLibrary::YieldCurvePoint>("YieldCurvePoint", init<int, double>())
+    class_<BondLibrary::YieldCurvePoint>("YieldCurvePoint", init<double, double>((arg("maturity"), arg("bond_yield"))))
         .def_readwrite("maturity", &BondLibrary::YieldCurvePoint::maturity)
         .def_readwrite("bond_yield", &BondLibrary::YieldCurvePoint::yield)
         .def("__eq__", &BondLibrary::YieldCurvePoint::operator==);
@@ -44,15 +39,27 @@ BOOST_PYTHON_MODULE(BondPricing) {
         .def("duration", pure_virtual(&BondLibrary::BaseBond::duration))
         .def("notionalPresentValue", pure_virtual(&BondLibrary::BaseBond::notionalPresentValue));
     class_<BondLibrary::FlatTermBond, bases<BaseBondWrapper>>(
-        "FlatTermBond", init<double, double, Date, Date, list, Date, DC>(
-            (arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"), arg("cashflows")
-             , arg("settlement_date")=BondLibrary::Utils::getCurrentDate() /* + 2 */
-             , arg("dc_convention")=DC::YearActualMonthActual)
-        ))
+        "FlatTermBond", init<double, double, Date, Date, list, Date, DC>((
+            arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"), 
+            arg("cashflows"), arg("settlement_date")=BondLibrary::Utils::getCurrentDate() + 2, 
+            arg("dc_convention")=DC::YearActualMonthActual
+        )))
         .def("cleanPrice", &BondLibrary::FlatTermBond::cleanPrice)
         .def("dirtyPrice", &BondLibrary::FlatTermBond::dirtyPrice, (arg("rate"), arg("date")))
         .def("dirtyPriceFromCleanPrice", &BondLibrary::FlatTermBond::dirtyPriceFromCleanPrice)
         .def("duration", &BondLibrary::FlatTermBond::duration)
+        .def("isExpired", &BondLibrary::BaseBond::isExpired)
+        .def("yieldToMaturity", &BondLibrary::BaseBond::yieldToMaturity);
+    class_<BondLibrary::GeneralTermBond, bases<BaseBondWrapper>>(
+        "GeneralTermBond", init<double, double, Date, Date, list&, Date, BondLibrary::YieldCurve&, DC>((
+            arg("face_value"), arg("coupon"), arg("maturity_date"), arg("issue_date"),
+            arg("cashflows"), arg("settlement_date")=BondLibrary::Utils::getCurrentDate() + 2, 
+            arg("yield_curve"), arg("dc_convention")=DC::YearActualMonthActual
+        )))
+        .def("cleanPrice", &BondLibrary::GeneralTermBond::cleanPrice)
+        .def("dirtyPrice", &BondLibrary::GeneralTermBond::dirtyPrice)
+        .def("getDuration", &BondLibrary::GeneralTermBond::getDuration)
+        .def("setYieldCurve", &BondLibrary::GeneralTermBond::setYieldCurve)
         .def("isExpired", &BondLibrary::BaseBond::isExpired)
         .def("yieldToMaturity", &BondLibrary::BaseBond::yieldToMaturity);
 }

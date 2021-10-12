@@ -2,7 +2,7 @@ import pytest
 import sys, os
 import math
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'build'))
-from BondPricing import YieldCurvePoint, YieldCurve, FlatTermBond, CashFlow, Date, DayCountConvention
+from BondPricing import YieldCurvePoint, YieldCurve, FlatTermBond, CashFlow, Date, DayCountConvention, GeneralTermBond
 
 class TestBaseBond:
     def test_ExpiredBond(self):
@@ -104,9 +104,73 @@ class TestFlatTermStructure:
 
 class TestGeneralTermStucture:
     def test_CleanPrice(self):
-        assert 2 == 2
+        yields = [0.035, 0.04, 0.047, 0.055]
+        curve = YieldCurve(
+            [YieldCurvePoint(maturity = x + 1, bond_yield = yields[x]) for x in range(4)]
+        )
+        gtbond = GeneralTermBond(
+            face_value = 100,
+            coupon = 5,
+            cashflows = [
+                CashFlow(5, Date('01/01/202{}'.format(x))) for x in range(2, 6)
+            ],
+            maturity_date = Date('01/01/2025'),
+            issue_date = Date('01/01/2021'),
+            yield_curve = curve
+        )
+        assert gtbond.cleanPrice(Date('01/01/2021')) == 98.05
     def test_DirtyPrice(self):
-        assert 2 == 2
+        yields = [0.035, 0.04, 0.047, 0.055]
+        curve = YieldCurve(
+            [YieldCurvePoint(maturity = x + 1, bond_yield = yields[x]) for x in range(4)]
+        )
+        gtbond = GeneralTermBond(
+            face_value = 100,
+            coupon = 5,
+            cashflows = [
+                CashFlow(5, Date('01/01/202{}'.format(x))) for x in range(2, 6)
+            ],
+            maturity_date = Date('01/01/2025'),
+            issue_date = Date('01/01/2020'),
+            yield_curve = curve
+        )
+        assert gtbond.dirtyPrice(Date('01/06/2022')) == 100.45
+    def test_YieldToMaturity(self):
+        yields = [0.035, 0.04, 0.047, 0.055]
+        curve = YieldCurve(
+            [YieldCurvePoint(maturity = x + 1, bond_yield = yields[x]) for x in range(4)]
+        )
+        gtbond = GeneralTermBond(
+            face_value = 100,
+            coupon = 5,
+            cashflows = [
+                CashFlow(5, Date('01/01/202{}'.format(x))) for x in range(2, 6)
+            ],
+            maturity_date = Date('01/01/2025'),
+            issue_date = Date('01/01/2020'),
+            yield_curve = curve
+        )
+        assert gtbond.yieldToMaturity(
+            gtbond.cleanPrice(Date('01/01/2021')), Date('01/01/2021')
+        ) == 0.0556
+
+    def test_Duration(self):
+        yields = [0.035, 0.04, 0.047, 0.055]
+        curve = YieldCurve(
+            [YieldCurvePoint(maturity = x + 1, bond_yield = yields[x]) for x in range(4)]
+        )
+        gtbond = GeneralTermBond(
+            face_value = 100,
+            coupon = 10,
+            cashflows = [
+                CashFlow(10, Date('01/01/202{}'.format(x))) for x in range(2, 6)
+            ],
+            maturity_date = Date('01/01/2025'),
+            issue_date = Date('01/01/2020'),
+            yield_curve = curve
+        )
+        assert gtbond.getDuration(Date('01/01/2021')) == 3.52
+
 
 class TestYieldCurves:
     def test_BadConstruction(self):
