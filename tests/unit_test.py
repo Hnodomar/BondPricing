@@ -2,7 +2,7 @@ import pytest
 import sys, os
 import math
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'build'))
-from BondPricing import YieldCurvePoint, YieldCurve, FlatTermBond, CashFlow, Date, DayCountConvention, GeneralTermBond
+from BondPricing import *
 
 class TestBaseBond:
     def test_ExpiredBond(self):
