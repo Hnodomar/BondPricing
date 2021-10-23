@@ -9,10 +9,6 @@ GeneralTermBond::GeneralTermBond(double face_value, double coupon, const Date ma
   , yield_curve_(yield_curve)
 {}
 
-const std::vector<double> GeneralTermBond::month_days_ = {
-    0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 
-};
-
 double GeneralTermBond::cleanPrice(const Date date) const {
     if (isExpired()) return 0.0;
     return valueBasedOnYieldCurve(0, date);
@@ -87,7 +83,7 @@ double GeneralTermBond::performLinearInterpolation(const double time) const {
 double GeneralTermBond::getYearFraction(const Date& date) const {
     double frac = 0.0;
     for (int i = 0; i < date.month; ++i)
-        frac += GeneralTermBond::month_days_[i];
+        frac += BaseBond::month_days_[i];
     return (frac + static_cast<double>(date.day - 1)) / 365.0;
 }
 

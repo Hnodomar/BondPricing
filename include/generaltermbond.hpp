@@ -33,7 +33,6 @@ private:
     double discountFactorFromYield(const double rate, const double time) const;
     double valueBasedOnYieldCurve(const double rate, Date date) const;
     double performLinearInterpolation(const double time) const;
-    static const std::vector<double> month_days_;
     YieldCurve& yield_curve_;
 };
 }

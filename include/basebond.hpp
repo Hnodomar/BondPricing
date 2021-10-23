@@ -50,12 +50,21 @@ protected:
         double dx_old
     ) const;
     int getCouponFrequency(const Date& date) const;
+    double discountFactorYMCount(
+        const double year_count, 
+        const double day_count, 
+        const Date& settlement, 
+        const Date& prev_cf_date
+    ) const;
     double face_value_;
     double coupon_;
     Date maturity_date_;
     Date issue_date_;
     Date settlement_date_;
     CashFlows cashflows_;
+    constexpr static std::vector<double> month_days_ = {
+        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 
+    };
     DayCountConvention daycount_convention_;
 };
 }

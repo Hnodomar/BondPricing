@@ -51,16 +51,23 @@ double BaseBond::accruedAmount(Date settlement) const {
         throw std::runtime_error("Cannot accrue interest for a date before the previous cashflow");
     switch (daycount_convention_) {
         case DCV::Year360Month30:
-            dcf = (360.0 * (settlement.year - prev_cf_date.year) 
-                + 30.0 * (settlement.month - prev_cf_date.month)
-                + (settlement.day - prev_cf_date.day)) / 360.0;
+            dcf = discountFactorYMCount(365.0, 30.0, settlement, prev_cf_date);
             break;
         case DCV::Year365Month30:
+            dcf = discountFactorYMCount(365.0, 30.0, settlement, prev_cf_date);
             break;
-        case DCV::Year360MonthActual:
+        case DCV::Year360MonthActual: {
+            const double date_one = getJulianDayNumber(prev_cf_date);
+            const double date_two = getJulianDayNumber(settlement);
+            dcf = (date_two - date_one) / 360.0;
             break;
-        case DCV::Year365MonthActual:
+        }
+        case DCV::Year365MonthActual: {
+            const double date_one = getJulianDayNumber(prev_cf_date);
+            const double date_two = getJulianDayNumber(settlement);
+            dcf = (date_two - date_one) / 365.0;
             break;
+        }
         case DCV::YearActualMonthActual: {
             const double date_one = getJulianDayNumber(prev_cf_date);
             const double date_two = getJulianDayNumber(settlement);
@@ -72,6 +79,13 @@ double BaseBond::accruedAmount(Date settlement) const {
             break;
     }
     return round(dcf * coupon_ * 100.0) / 100.0;
+}
+
+double BaseBond::discountFactorYMCount(const double year_count, const double day_count, 
+ const Date& settlement, const Date& prev_cf_date) const {
+    return (year_count *  (settlement.year - prev_cf_date.year)
+        + day_count * (settlement.month - prev_cf_date.month)
+        + (settlement.day - prev_cf_date.day)) / year_count;
 }
 
 int BaseBond::getCouponFrequency(const Date& date) const {
@@ -86,7 +100,6 @@ int BaseBond::getCouponFrequency(const Date& date) const {
 }
 
 double BaseBond::yieldToMaturity(const double bond_price, const Date date) const {
-    std::cout << bond_price << std::endl;
     double precision = 1e-5, froot = 0, dfroot = 0, dx = 0, dx_old = 0, xh = 0, xl = 0;
     double low_bound = 0, up_bound = 1.0;
     size_t max_iterations = 200, curr_iterations = 0;
